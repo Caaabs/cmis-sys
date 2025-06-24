@@ -1,0 +1,152 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  employee
+}
+
+enum Status {
+  DRAFT
+  SUBMITTED
+}
+
+model User {
+  id            String          @id @default(uuid(4)) @db.Uuid
+  email         String          @db.VarChar(50)
+  userRole      Role
+  emailVerified Boolean?
+  phoneVerified Boolean?
+  CanteenReport CanteenReport[]
+}
+
+model CanteenReport {
+  id                             String                          @id @default(uuid(4)) @db.Uuid
+  createdAt                      DateTime                        @default(now())
+  year                           Int                             @db.Integer
+  month                          Int                             @db.SmallInt
+  user                           User                            @relation(fields: [userId], references: [id])
+  userId                         String                          @db.Uuid
+  status                         Status                          @default(DRAFT)
+  canteenReportExpense           CanteenReportExpense?
+  canteenReportPreviousNetIncome CanteenReportPreviousNetIncome?
+  canteenReportCurrentNetIncome  CanteenReportCurrentNetIncome?
+}
+
+model CanteenReportPreviousNetIncome {
+  id                                 String        @id @default(uuid(4)) @db.Uuid
+  supplementaryNetIncome             Decimal       @default(0) @db.Money
+  schoolClinicNetIncome              Decimal       @default(0) @db.Money
+  facultyStudentDevelopmentNetIncome Decimal       @default(0) @db.Money
+  heInstructionNetIncome             Decimal       @default(0) @db.Money
+  schoolOperationNetIncome           Decimal       @default(0) @db.Money
+  revolvingCapitalNetIncome          Decimal       @default(0) @db.Money
+  totalNetIncome                     Decimal       @default(0) @db.Money
+  canteenReport                      CanteenReport @relation(fields: [canteenReportId], references: [id])
+  canteenReportId                    String        @unique @db.Uuid
+}
+
+model CanteenReportCurrentNetIncome {
+  id                                 String        @id @default(uuid(4)) @db.Uuid
+  supplementaryNetIncome             Decimal       @default(0) @db.Money
+  schoolClinicNetIncome              Decimal       @default(0) @db.Money
+  facultyStudentDevelopmentNetIncome Decimal       @default(0) @db.Money
+  heInstructionNetIncome             Decimal       @default(0) @db.Money
+  schoolOperationNetIncome           Decimal       @default(0) @db.Money
+  revolvingCapitalNetIncome          Decimal       @default(0) @db.Money
+  totalNetIncome                     Decimal       @default(0) @db.Money
+  canteenReport                      CanteenReport @relation(fields: [canteenReportId], references: [id])
+  canteenReportId                    String        @unique @db.Uuid
+}
+
+model CanteenReportExpense {
+  id                                   String                                @id @default(uuid(4)) @db.Uuid
+  canteenReport                        CanteenReport                         @relation(fields: [canteenReportId], references: [id])
+  canteenReportId                      String                                @unique @db.Uuid
+  supplementaryExpense                 SupplementaryExpense?
+  schoolClinicExpense                  SchoolClinicExpense?
+  facultyStudentDevelopmentFundExpense FacultyStudentDevelopmentFundExpense?
+  heInstructionExpense                 HeInstructionExpense?
+  schoolOperationExpense               SchoolOperationExpense?
+  revolvingCapitalExpense              RevolvingCapitalExpense?
+}
+
+model SupplementaryExpense {
+  id                     String                     @id @default(uuid(4)) @db.Uuid
+  expenses               CanteenReportExpenseItem[]
+  totalCost              Decimal                    @db.Money
+  canteenReportExpense   CanteenReportExpense       @relation(fields: [canteenReportExpenseId], references: [id])
+  canteenReportExpenseId String                     @unique @db.Uuid
+}
+
+model SchoolClinicExpense {
+  id                     String                     @id @default(uuid(4)) @db.Uuid
+  expenses               CanteenReportExpenseItem[]
+  totalCost              Decimal                    @db.Money
+  canteenReportExpense   CanteenReportExpense       @relation(fields: [canteenReportExpenseId], references: [id])
+  canteenReportExpenseId String                     @unique @db.Uuid
+}
+
+model FacultyStudentDevelopmentFundExpense {
+  id                     String                     @id @default(uuid(4)) @db.Uuid
+  expenses               CanteenReportExpenseItem[]
+  totalCost              Decimal                    @db.Money
+  canteenReportExpense   CanteenReportExpense       @relation(fields: [canteenReportExpenseId], references: [id])
+  canteenReportExpenseId String                     @unique @db.Uuid
+}
+
+model HeInstructionExpense {
+  id                     String                     @id @default(uuid(4)) @db.Uuid
+  expenses               CanteenReportExpenseItem[]
+  totalCost              Decimal                    @db.Money
+  canteenReportExpense   CanteenReportExpense       @relation(fields: [canteenReportExpenseId], references: [id])
+  canteenReportExpenseId String                     @unique @db.Uuid
+}
+
+model SchoolOperationExpense {
+  id                     String                     @id @default(uuid(4)) @db.Uuid
+  expenses               CanteenReportExpenseItem[]
+  totalCost              Decimal                    @db.Money
+  canteenReportExpense   CanteenReportExpense       @relation(fields: [canteenReportExpenseId], references: [id])
+  canteenReportExpenseId String                     @unique @db.Uuid
+}
+
+model RevolvingCapitalExpense {
+  id                     String                     @id @default(uuid(4)) @db.Uuid
+  expenses               CanteenReportExpenseItem[]
+  totalCost              Decimal                    @db.Money
+  canteenReportExpense   CanteenReportExpense       @relation(fields: [canteenReportExpenseId], references: [id])
+  canteenReportExpenseId String                     @unique @db.Uuid
+}
+
+model CanteenReportExpenseItem {
+  id              String  @id @default(uuid(4)) @db.Uuid
+  itemCost        Decimal @db.Money
+  itemDescription String  @db.VarChar(50)
+
+  SupplementaryExpense                   SupplementaryExpense?                 @relation(fields: [supplementaryExpenseId], references: [id])
+  supplementaryExpenseId                 String?                               @db.Uuid
+  SchoolClinicExpense                    SchoolClinicExpense?                  @relation(fields: [schoolClinicExpenseId], references: [id])
+  schoolClinicExpenseId                  String?                               @db.Uuid
+  FacultyStudentDevelopmentFundExpense   FacultyStudentDevelopmentFundExpense? @relation(fields: [facultyStudentDevelopmentFundExpenseId], references: [id])
+  facultyStudentDevelopmentFundExpenseId String?                               @db.Uuid
+  HeInstructionExpense                   HeInstructionExpense?                 @relation(fields: [heInstructionExpenseId], references: [id])
+  heInstructionExpenseId                 String?                               @db.Uuid
+  SchoolOperationExpense                 SchoolOperationExpense?               @relation(fields: [schoolOperationExpenseId], references: [id])
+  schoolOperationExpenseId               String?                               @db.Uuid
+  RevolvingCapitalExpense                RevolvingCapitalExpense?              @relation(fields: [revolvingCapitalExpenseId], references: [id])
+  revolvingCapitalExpenseId              String?                               @db.Uuid
+}
